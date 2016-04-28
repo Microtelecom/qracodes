@@ -29,7 +29,28 @@
 //    along with qra_codes source distribution.  
 //    If not, see <http://www.gnu.org/licenses/>.
 
-#include <windows.h>   // required only for GetTickCount(...)
+#if _WIN32 // note the underscore: without it, it's not msdn official!
+	// Windows (x64 and x86)
+	#include <windows.h>   // required only for GetTickCount(...)
+#endif
+
+#if __linux__
+#include <unistd.h>
+#include <time.h>
+
+unsigned GetTickCount() {
+    struct timespec ts;
+    unsigned theTick = 0U;
+    clock_gettime( CLOCK_REALTIME, &ts );
+    theTick  = ts.tv_nsec / 1000000;
+    theTick += ts.tv_sec * 1000;
+    return theTick;
+}
+#endif
+
+#if __APPLE__
+#endif
+
 #include <stdio.h>
 
 #ifdef FTZ_ENABLE	   // shouldn't be required anymore - kept here just as a remind in the case we need it
@@ -142,7 +163,7 @@ int wer_test(int channel_type, float EbNodB, int desirederrs, FILE *fout)
 
 		// print a dot every 100 errors 
 		if (nerrs!=nep && (nerrs%100)==0) {
-			printf(".");	
+			printf("."); fflush (stdout);
 			nep = nerrs;
 		}
 
@@ -153,11 +174,11 @@ int wer_test(int channel_type, float EbNodB, int desirederrs, FILE *fout)
 		}
 
 	cend = GetTickCount();
-	printf("\n");
+	printf("\n"); fflush (stdout);
 
 	avgt = 1.0f*(cend-cini)/nt; // average time per decode(ms)
 	printf("Elapsed time=%5.1fs Avg time per word=%6.2fms ntx=%6d errs=%5d errsu=%3d pe=%.2e\n",0.001f*(cend-cini),avgt, nt, nerrs, nerrsu, 1.0f*nerrs/nt);
-
+	fflush (stdout);
 	fprintf(fout,"%01d %.2f %d %d %d %.2f\n",channel_type, EbNodB,nt,nerrs,nerrsu, avgt);
 
 	return 0;
@@ -207,15 +228,26 @@ void wer_test_rayleigh(void)
 
 }
 
-// #define TEST_WER_AWGN
- #define TEST_WER_RAYLEIGH
+//#define TEST_WER_AWGN
+//#define TEST_WER_RAYLEIGH
+
+#if !defined TEST_WER_AWGN && !defined TEST_WER_RAYLEIGH
+#error Please define one among TEST_WER_AWGN and TEST_WER_RAYLEIGH
+#endif
 
 int main(int argc, char* argv[])
 {
 #ifdef FTZ_ENABLE
 	// set the Flush-to-Zero flag in the FPU
+#if _WIN32	
 	int ftzmode;
 	_MM_GET_FLUSH_ZERO_MODE(ftzmode);
+#elif __linux__
+	int ftzmode =
+	_MM_GET_FLUSH_ZERO_MODE();
+#else
+#error Platform does not support _MM_GET_FLUSH_ZERO_MODE
+#endif
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 #endif
 
