@@ -37,7 +37,7 @@
 #define qra_NMSG   217 // number of msgs in the code graph
 #define qra_MAXVDEG    8 // maximum variable degree
 #define qra_MAXCDEG    3 // maximum factor degree
-#define qra_R     0.19048 // code rate (K/N)
+#define qra_R     0.19048f // code rate (K/N)
 #define CODE_NAME "qra_12_63_64_irr_b"
 
 

@@ -144,19 +144,19 @@ static void qra_ioapprox(float *src, float C, int nitems)
 }
 
 
-void qra_mfskbesselmetric(const qracode *pcode, float *pix, const float *rsq, float EsNoMetric)
+void qra_mfskbesselmetric(float *pix, const float *rsq, const uint m, const uint N, float EsNoMetric)
 {
 	// Computes the codeword symbols intrinsic probabilities
 	// given the square of the received input amplitudes.
 
-	// The input vector rqs must be a linear array of size qra_M*qra_N
+	// The input vector rqs must be a linear array of size M*N, where M=2^m,
 	// containing the squared amplitudes (rp*rp+rq*rq) of the input samples
 
-	// First symbol amplitudes should be stored in the first qra_M positions,
-	// second symbol amplitudes stored at positions [qra_M..2*qraM_1], and so on.
+	// First symbol amplitudes should be stored in the first M positions,
+	// second symbol amplitudes stored at positions [M ... 2*M-1], and so on.
 
 	// Output vector is the intrinsic symbol metric (the probability distribution)
-	// assuming that symbols are transmitted using a M-FSK modulation (M=qra_M) 
+	// assuming that symbols are transmitted using a M-FSK modulation 
 	// and incoherent demodulation.
 
 	// As the input Es/No is generally unknown (as it cannot be exstimated accurately
@@ -171,9 +171,7 @@ void qra_mfskbesselmetric(const qracode *pcode, float *pix, const float *rsq, fl
 	float rsum = 0.f;
 	float sigmaest, cmetric;
 
-	const uint M = pcode->M;
-	const uint N = pcode->N;
-	const uint m = pcode->m;
+	const uint M = 1<<m;
 	const uint nsamples = M*N;
 
 	// compute total power and modulus of input signal
