@@ -33,11 +33,12 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "qra65.h"
-#include "..\qracodes\qracodes.h"
-#include "..\qracodes\qra13_64_64_irr_e.h"
-#include "..\qracodes\pdmath.h"
+#include "../qracodes-mt/qracodes.h"
+#include "../qracodes-mt/qra13_64_64_irr_e.h"
+#include "../qracodes-mt/pdmath.h"
 
 // Code parameters of the QRA65 mode 
 #define QRA65_CODE  qra_13_64_64_irr_e
@@ -50,7 +51,7 @@
 
 
 // static functions declarations -------------------------------------------------
-static int  calc_crc6(const int *x, int sz);
+static int  calc_crc6(const uint *x, uint sz);
 static void ix_mask(float *dst, const float *src, const int *mask, const int *x);
 static int  qra65_do_decode(int *x, const float *pix, const int *ap_mask, const int *ap_x);
 
@@ -109,8 +110,8 @@ qra65codec *qra65_init(int flags, const int mycall)
 
 void qra65_encode(qra65codec *pcodec, int *y, const int *x)
 {
-	int encx[QRA65_KC];	// encoder input buffer
-	int ency[QRA65_NC];	// encoder output buffer
+	uint encx[QRA65_KC];	// encoder input buffer
+	uint ency[QRA65_NC];	// encoder output buffer
 
 	int call1,call2,grid;
 
@@ -216,7 +217,7 @@ static int qra65_do_decode(int *x, const float *pix, const int *ap_mask, const i
 
 	float v2cmsg[QRA65_NMSG*QRA65_M];	// buffers for the decoder messages
 	float c2vmsg[QRA65_NMSG*QRA65_M];
-	int   xdec[QRA65_KC];
+	uint  xdec[QRA65_KC];
 
 	if (ap_mask==NULL) { // no a-priori information
 		ixsrc = pix;	 // intrinsic source is what passed as argument
@@ -255,7 +256,7 @@ static int qra65_do_decode(int *x, const float *pix, const int *ap_mask, const i
 // g(x) = x^6 + x^2 + x + 1 (as suggested by Joe. See:  https://users.ece.cmu.edu/~koopman/crc/)
 // #define CRC6_GEN_POL 0x38  // MSB=a0 LSB=a5. Simulation results are similar
 
-static int calc_crc6(const int *x, int sz)
+static int calc_crc6(const uint *x, uint sz)
 {
 	// todo: compute it faster using a look up table
 	int k,j,t,sr = 0;

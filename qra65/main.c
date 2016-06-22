@@ -74,9 +74,10 @@ unsigned GetTickCount(void) {
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "qra65.h"
-#include "..\qracodes\normrnd.h"		   // gaussian numbers generator
+#include "../qracodes-mt/normrnd.h"		   // gaussian numbers generator
 
 // -----------------------------------------------------------------------------------
 
