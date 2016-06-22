@@ -132,9 +132,11 @@ const char fnameout_sfx[4][64] = {
 	"-ap56.txt"
 };
 
-const uint ap_masks_jt65[4][12] = {
+const uint ap_masks_jt65[4][13] = { 
+// Each row must be 13 entries long (to handle puntc. codes 13,64)
+// The mask of 13th symbol (crc) is alway initializated to 0
 	// AP0  - no a-priori knowledge
-	{   0,    0,    0,    0,    0,   0,   0,   0,   0,   0,   0,   0}, 
+	{   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0}, 
 	// AP28 - 1st field known [cq ? ?] or [dst ? ?] 
 	{0x3F,0x3F,0x3F,0x3F,0x3C,   0,   0,   0,   0,   0,   0,   0}, 
 	// AP44 - 1st and 3rd fields known [cq ? 0] or [dst ? 0] 
@@ -318,7 +320,7 @@ void wer_test_thread(wer_test_ds *pdata)
 			r[k] = rp[k]*rp[k] + rq[k]*rq[k];
 
 		// compute the intrinsic symbols probabilities 
-		qra_mfskbesselmetric(pcode,ix,r,EsNoMetric);
+		qra_mfskbesselmetric(ix,r,pcode->m,pcode->N,EsNoMetric);
 
 		if (code_type==QRATYPE_CRCPUNCTURED) {
 			// ignore observations of the CRC symbol as it is not actually sent
@@ -409,11 +411,13 @@ void ix_mask(const qracode *pcode, float *r, const uint *mask, const uint *x)
 
 	for (k=0;k<qra_K;k++) {
 		smask = mask[k];
-		for (kk=0;kk<qra_M;kk++) 
-			if (((kk^x[k])&smask)!=0)
-				*(PD_ROWADDR(r,qra_M,k)+kk) = 0.f;
+		if (smask) {
+			for (kk=0;kk<qra_M;kk++) 
+				if (((kk^x[k])&smask)!=0)
+					*(PD_ROWADDR(r,qra_M,k)+kk) = 0.f;
 
-		pd_norm(PD_ROWADDR(r,qra_M,k),qra_m);
+			pd_norm(PD_ROWADDR(r,qra_M,k),qra_m);
+			}
 		}
 }
 
@@ -540,7 +544,7 @@ int wer_test_proc(const qracode *pcode, uint nthreads, int chtype, uint ap_index
 		pe = 1.0f*nerrs/nt;			// word error rate 
 		avgt = 1.0f*(cend-cini)/nt; // average time per decode (ms)
 
-		printf("Elapsed=%6.1fs (%5.2fms/word) - Tx=%8d - Errs=%6d - Undetected=%3d - Wer=%.2e\n",
+		printf("Elapsed Time=%6.1fs (%5.2fms/word)\nTransmitted=%8d - Errors=%6d - Undetected=%3d - WER=%.2e\n",
 				0.001f*(cend-cini),
 				avgt, nt, nerrs, nerrsu, pe);
 		fflush (stdout);

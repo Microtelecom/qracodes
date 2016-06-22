@@ -70,7 +70,7 @@ extern "C" {
 #endif
 
 int  qra_encode(const qracode *pcode, uint *y, const uint *x);
-void qra_mfskbesselmetric(const qracode *pcode, float *pix, const float *rsq, float EsNoMetric);
+void qra_mfskbesselmetric(float *pix, const float *rsq, const uint m, const uint N, float EsNoMetric);
 int  qra_extrinsic(const qracode *pcode, float *pex, const float *pix, int maxiter,float *qra_v2cmsg,float *qra_c2vmsg);
 void qra_mapdecode(const qracode *pcode, uint *xdec, float *pex, const float *pix);
 
