@@ -68,6 +68,22 @@ unsigned GetTickCount(void) {
     theTick += ts.tv_sec * 1000;
     return theTick;
 }
+
+#define __cdecl
+#define _endthread()
+#include <pthread.h>
+
+// Convert Windows millisecond sleep
+//
+// VOID WINAPI Sleep(_In_ DWORD dwMilliseconds);
+//
+// to Posix usleep (in microseconds)
+//
+// int usleep(useconds_t usec);
+//
+#include <unistd.h>
+#define Sleep(x)  usleep(x*1000)
+
 #endif
 
 #if __APPLE__
@@ -127,7 +143,7 @@ const uint ap_masks_jt65[4][12] = {
     {0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x30,   0,   0}
 };
 
-void ix_mask(const qracode *pcode, float *r, const int *mask, const int *x);
+void ix_mask(const qracode *pcode, float *r, const uint *mask, const uint *x);
 
 void printword(char *msg, int *x, int size)
 {
@@ -159,7 +175,9 @@ typedef struct {
 	float   *r;				//[qra_N*qra_M];	received samples (amplitude)   buffer
 	float   *ix;			// [qra_N*qra_M];	// intrinsic information to the MP algorithm
 	float   *ex;			// [qra_N*qra_M];	// extrinsic information from the MP algorithm
-
+#ifdef __linux__
+	pthread_t thread;
+#endif
 } wer_test_ds;
 
 typedef void( __cdecl *pwer_test_thread)(wer_test_ds*);
@@ -173,7 +191,7 @@ typedef void( __cdecl *pwer_test_thread)(wer_test_ds*);
 // g(x) = x^6 + x^2 + x + 1 (as suggested by Joe. See:  https://users.ece.cmu.edu/~koopman/crc/)
 // #define CRC6_GEN_POL 0x38  // MSB=a0 LSB=a5. Simulation results are similar
 
-int calc_crc6(int *x, int sz)
+int calc_crc6(uint *x, int sz)
 {
 	int k,j,t,sr = 0;
 	for (k=0;k<sz;k++) {
@@ -188,6 +206,7 @@ int calc_crc6(int *x, int sz)
 		}
 	return sr;
 }
+
 
 void wer_test_thread(wer_test_ds *pdata)
 {
@@ -328,7 +347,7 @@ void wer_test_thread(wer_test_ds *pdata)
 				j = 0; diff = 0;
 				for (k=0;k<(qra_K-1);k++) 
 					diff |= (ydec[k]!=x[k]);
-				t = calc_crc6(ydec,qra_K-1);
+				t = calc_crc6(ydec,(int)qra_K-1);
 				if (t!=ydec[k]) // error detected - crc doesn't matches
 					nerrs  += 1;
 				else
@@ -368,7 +387,18 @@ void wer_test_thread(wer_test_ds *pdata)
 	_endthread();
 }
 
-void ix_mask(const qracode *pcode, float *r, const int *mask, const int *x)
+#if __linux__
+
+void *wer_test_pthread(void *p)
+{
+	wer_test_thread ((wer_test_ds *)p);
+	return 0;
+}
+
+#endif
+
+
+void ix_mask(const qracode *pcode, float *r, const uint *mask, const uint *x)
 {
 	// mask intrinsic information (channel observations) with a priori knowledge
 	
@@ -450,7 +480,14 @@ int wer_test_proc(const qracode *pcode, uint nthreads, int chtype, uint ap_index
 			wt[j].nerrsu=0;
 			wt[j].done = 0;
 			wt[j].stop = 0;
+			#ifdef __linux__
+			if (pthread_create (&wt[j].thread, 0, wer_test_pthread, &wt[j])) {
+				perror ("Creating thread: ");
+				exit (255);
+			}
+			#else
 			_beginthread((void*)(void*)wer_test_thread,0,&wt[j]);
+			#endif
 			}
 
 		nd = 0;
@@ -558,6 +595,15 @@ void syntax(void)
 	printf("                       1.6 1000\n");
 	printf("                       ...\n");
 	printf("                       (lines beginning with a # are treated as comments\n\n");
+	
+	printf("                       sizeof(unsigned int)       = %ld bytes\n",      sizeof(unsigned int));
+	printf("                       sizeof(unsigned long)      = %ld bytes\n",      sizeof(unsigned long));
+	printf("                       sizeof(unsigned long long) = %ld bytes\n",      sizeof(unsigned long long));
+	printf("                       sizeof(unsigned float)     = %ld bytes\n",      sizeof(float));
+	printf("                       sizeof(unsigned double)    = %ld bytes\n",      sizeof(double));
+	printf("                       sizeof(void *)             = %ld bytes\n",      sizeof(void *));
+	
+	printf("\n\n");
 }
 
 #define SIM_POINTS_MAX 20
