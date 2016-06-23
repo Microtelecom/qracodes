@@ -51,7 +51,7 @@ static const int qra_acc_input_idx[qra_NC+1] = {
 };
 
 // table of the systematic symbols weight logarithms over GF(M)
-static const uint qra_acc_input_wlog[qra_NC+1] = {
+static const  int qra_acc_input_wlog[qra_NC+1] = {
   0,  27,   0,   0,   0,  31,  28,  61,  31,   0, 
   0,  52,  22,   7,  19,  47,  44,  62,  32,  50, 
  52,  42,  48,  56,  40,  50,  51,  37,  37,   0, 
@@ -72,7 +72,7 @@ static const int qra_log[qra_M] = {
 };
 
 // table of GF(M) elements given their logarithm
-static const uint qra_exp[qra_M-1] = {
+static const  int qra_exp[qra_M-1] = {
   1,   2,   4,   8,  16,  32,   3,   6,  12,  24, 
  48,  35,   5,  10,  20,  40,  19,  38,  15,  30, 
  60,  59,  53,  41,  17,  34,   7,  14,  28,  56, 
@@ -83,7 +83,7 @@ static const uint qra_exp[qra_M-1] = {
 };
 
 // table of the messages weight logarithms over GF(M)
-static const uint qra_msgw[qra_NMSG] = {
+static const  int qra_msgw[qra_NMSG] = {
   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
@@ -109,7 +109,7 @@ static const uint qra_msgw[qra_NMSG] = {
 };
 
 // table of the degrees of the variable nodes
-static const uint qra_vdeg[qra_V] = {
+static const  int qra_vdeg[qra_V] = {
   4,   4,   4,   4,   5,   5,   5,   5,   7,   4, 
   4,   6,   8,   3,   3,   3,   3,   3,   3,   3, 
   3,   3,   3,   3,   3,   3,   3,   3,   3,   3, 
@@ -120,7 +120,7 @@ static const uint qra_vdeg[qra_V] = {
 };
 
 // table of the degrees of the factor nodes
-static const uint qra_cdeg[qra_C] = {
+static const  int qra_cdeg[qra_C] = {
   1,   1,   1,   1,   1,   1,   1,   1,   1,   1, 
   1,   1,   1,   1,   1,   1,   1,   1,   1,   1, 
   1,   1,   1,   1,   1,   1,   1,   1,   1,   1, 
@@ -507,16 +507,16 @@ const qracode qra_13_64_64_irr_e = {
 		QRATYPE_CRCPUNCTURED,
 		qra_R,
 		CODE_NAME,
-		qra_acc_input_idx,	  // const int  *
-		qra_acc_input_wlog,   // const uint *
-		qra_log,              // const int  *
-		qra_exp,              // const uint *
-		qra_msgw,             // const uint *
-		qra_vdeg,             // const uint *
-		qra_cdeg,             // const uint *
-		qra_v2cmidx,          // const int  *
-		qra_c2vmidx,          // const int  *
-		qra_pmat              // const int  *
+		qra_acc_input_idx,
+		qra_acc_input_wlog,
+		qra_log,           
+		qra_exp,           
+		qra_msgw,          
+		qra_vdeg,          
+		qra_cdeg,          
+		qra_v2cmidx,       
+		qra_c2vmidx,       
+		qra_pmat           
 };
 
 #undef qra_K

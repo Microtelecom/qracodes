@@ -65,9 +65,9 @@
 // implements Windows API
 #include <time.h>
 
-unsigned GetTickCount(void) {
+ unsigned int GetTickCount(void) {
     struct timespec ts;
-    unsigned theTick = 0U;
+    unsigned int theTick = 0U;
     clock_gettime( CLOCK_REALTIME, &ts );
     theTick  = ts.tv_nsec / 1000000;
     theTick += ts.tv_sec * 1000;
@@ -137,7 +137,7 @@ const char fnameout_sfx[4][64] = {
 	"-ap56.txt"
 };
 
-const uint ap_masks_jt65[4][13] = { 
+const int ap_masks_jt65[4][13] = { 
 // Each row must be 13 entries long (to handle puntc. codes 13,64)
 // The mask of 13th symbol (crc) is alway initializated to 0
 	// AP0  - no a-priori knowledge
@@ -150,7 +150,7 @@ const uint ap_masks_jt65[4][13] = {
     {0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x30,   0,   0}
 };
 
-void ix_mask(const qracode *pcode, float *r, const uint *mask, const uint *x);
+void ix_mask(const qracode *pcode, float *r, const int *mask, const int *x);
 
 void printword(char *msg, int *x, int size)
 {
@@ -171,8 +171,8 @@ typedef struct {
 	volatile int done;
 	int		ap_index;		// index to the a priori knowledge mask
 	const qracode	*pcode;	// pointer to the code descriptor
-	uint	*x;				//[qra_K];		    input message buffer
-	uint	*y, *ydec;		//[qra_N];			encoded/decoded codewords buffers
+	int	*x;				//[qra_K];		    input message buffer
+	int	*y, *ydec;		//[qra_N];			encoded/decoded codewords buffers
 	float	*qra_v2cmsg;	//[qra_NMSG*qra_M]; MP decoder v->c msg buffer 
 	float	*qra_c2vmsg;	//[qra_NMSG*qra_M]; MP decoder c->v msg buffer
 	float	*rp;			// [qra_N*qra_M];	received samples (real component) buffer
@@ -214,15 +214,14 @@ int calc_crc6(uint *x, int sz)
 	return sr;
 }
 
-
 void wer_test_thread(wer_test_ds *pdata)
 {
 	const qracode *pcode=pdata->pcode;
-	const uint qra_K = pcode->K;
-	const uint qra_N = pcode->N;
-	const uint qra_M = pcode->M;
-	const uint qra_m = pcode->m;
-	const uint NSAMPLES = pcode->N*pcode->M;
+	const int qra_K = pcode->K;
+	const int qra_N = pcode->N;
+	const int qra_M = pcode->M;
+	const int qra_m = pcode->m;
+	const int NSAMPLES = pcode->N*pcode->M;
 
 	const float No = 1.0f;		// noise spectral density
 	const float sigma   = (float)sqrt(No/2.0f);	// std dev of noise I/Q components
@@ -232,7 +231,7 @@ void wer_test_thread(wer_test_ds *pdata)
 	const float EbNodBMetric = 2.8f; 
 	const float EbNoMetric   = (float)pow(10,EbNodBMetric/10);
 
-	uint k,t,j,diff;
+	int k,t,j,diff;
 	float R;
 	float EsNoMetric;
 	float EbNo, EsNo, Es, A;
@@ -244,8 +243,8 @@ void wer_test_thread(wer_test_ds *pdata)
 
 
 	// inizialize pointer to required buffers
-	uint *x=pdata->x;			// message buffer
-	uint *y=pdata->y, *ydec=pdata->ydec;	// encoded/decoded codeword buffers
+	int *x=pdata->x;			// message buffer
+	int *y=pdata->y, *ydec=pdata->ydec;	// encoded/decoded codeword buffers
 	float *qra_v2cmsg=pdata->qra_v2cmsg; // table of the v->c messages
 	float *qra_c2vmsg=pdata->qra_c2vmsg; // table of the c->v messages
 	float *rp=pdata->rp;		// received samples (real component)
@@ -405,14 +404,14 @@ void *wer_test_pthread(void *p)
 #endif
 
 
-void ix_mask(const qracode *pcode, float *r, const uint *mask, const uint *x)
+void ix_mask(const qracode *pcode, float *r, const int *mask, const int *x)
 {
 	// mask intrinsic information (channel observations) with a priori knowledge
 	
-	uint k,kk, smask;
-	const uint qra_K=pcode->K;
-	const uint qra_M=pcode->M;
-	const uint qra_m=pcode->m;
+	int k,kk, smask;
+	const int qra_K=pcode->K;
+	const int qra_M=pcode->M;
+	const int qra_m=pcode->m;
 
 	for (k=0;k<qra_K;k++) {
 		smask = mask[k];
@@ -427,10 +426,10 @@ void ix_mask(const qracode *pcode, float *r, const uint *mask, const uint *x)
 }
 
 
-int wer_test_proc(const qracode *pcode, uint nthreads, int chtype, uint ap_index, float *EbNodB, uint *nerrstgt, uint nitems)
+int wer_test_proc(const qracode *pcode, int nthreads, int chtype, int ap_index, float *EbNodB, int *nerrstgt, int nitems)
 {
-	uint k,nn,j,nt,nerrs,nerrsu,nd;
-	uint cini,cend; 
+	int k,nn,j,nt,nerrs,nerrsu,nd;
+	int cini,cend; 
 	char fnameout[128];
 	FILE *fout;
 	wer_test_ds wt[NTHREADS_MAX];
@@ -462,9 +461,9 @@ int wer_test_proc(const qracode *pcode, uint nthreads, int chtype, uint ap_index
 			wt[j].channel_type=chtype;
 			wt[j].ap_index = ap_index;
 			wt[j].pcode    = pcode;
-			wt[j].x        = (uint*)malloc(pcode->K*sizeof(uint));
-			wt[j].y        = (uint*)malloc(pcode->N*sizeof(uint));
-			wt[j].ydec     = (uint*)malloc(pcode->N*sizeof(uint));
+			wt[j].x        = (int*)malloc(pcode->K*sizeof(int));
+			wt[j].y        = (int*)malloc(pcode->N*sizeof(int));
+			wt[j].ydec     = (int*)malloc(pcode->N*sizeof(int));
 			wt[j].qra_v2cmsg = (float*)malloc(pcode->NMSG*pcode->M*sizeof(float));
 			wt[j].qra_c2vmsg = (float*)malloc(pcode->NMSG*pcode->M*sizeof(float));
 			wt[j].rp       = (float*)malloc(pcode->N*pcode->M*sizeof(float));
@@ -605,12 +604,12 @@ void syntax(void)
 	printf("                       ...\n");
 	printf("                       (lines beginning with a # are treated as comments\n\n");
 	
-	printf("                       sizeof(unsigned int)       = %ld bytes\n",      sizeof(unsigned int));
-	printf("                       sizeof(unsigned long)      = %ld bytes\n",      sizeof(unsigned long));
-	printf("                       sizeof(unsigned long long) = %ld bytes\n",      sizeof(unsigned long long));
-	printf("                       sizeof(unsigned float)     = %ld bytes\n",      sizeof(float));
-	printf("                       sizeof(unsigned double)    = %ld bytes\n",      sizeof(double));
-	printf("                       sizeof(void *)             = %ld bytes\n",      sizeof(void *));
+	printf("                       sizeof(unsigned int)       = %lu bytes\n", (unsigned long) sizeof(unsigned int));
+	printf("                       sizeof(unsigned long)      = %lu bytes\n", (unsigned long) sizeof(unsigned long));
+	printf("                       sizeof(unsigned long long) = %lu bytes\n", (unsigned long) sizeof(unsigned long long));
+	printf("                       sizeof(unsigned float)     = %lu bytes\n", (unsigned long) sizeof(float));
+	printf("                       sizeof(unsigned double)    = %lu bytes\n", (unsigned long) sizeof(double));
+	printf("                       sizeof(void *)             = %lu bytes\n", (unsigned long) sizeof(void *));
 	
 	printf("\n\n");
 }
@@ -621,17 +620,17 @@ int main(int argc, char* argv[])
 {
 
 	float EbNodB[SIM_POINTS_MAX];
-	uint  nerrstgt[SIM_POINTS_MAX];
+	int  nerrstgt[SIM_POINTS_MAX];
 	FILE *fin;
 
 	char fnamein[128]= "ebnovalues.txt";
 	char buf[128];
 
-	uint nitems   = 0;
-	uint code_idx = 1;
-	uint nthreads = 8;
-	uint ch_type  = CHANNEL_AWGN;
-	uint ap_index = AP_NONE;
+	int nitems   = 0;
+	int code_idx = 1;
+	int nthreads = 8;
+	int ch_type  = CHANNEL_AWGN;
+	int ap_index = AP_NONE;
 
 	// parse command line
 	while(--argc) {
@@ -642,7 +641,7 @@ int main(int argc, char* argv[])
 			}
 		else
 		if (strncmp(*argv,"-q",2)==0) {
-			code_idx = (uint)atoi((*argv)+2);
+			code_idx = (int)atoi((*argv)+2);
 			if (code_idx>1) {
 				printf("Invalid code index\n");
 				syntax();
@@ -651,7 +650,7 @@ int main(int argc, char* argv[])
 			}
 		else
 		if (strncmp(*argv,"-t",2)==0) {
-			nthreads = (uint)atoi((*argv)+2);
+			nthreads = (int)atoi((*argv)+2);
 			if (nthreads>NTHREADS_MAX) {
 				printf("Invalid number of threads\n");
 				syntax();
@@ -660,7 +659,7 @@ int main(int argc, char* argv[])
 			}
 		else
 		if (strncmp(*argv,"-c",2)==0) {
-			ch_type = (uint)atoi((*argv)+2);
+			ch_type = (int)atoi((*argv)+2);
 			if (ch_type>CHANNEL_RAYLEIGH) {
 				printf("Invalid channel type\n");
 				syntax();
@@ -669,7 +668,7 @@ int main(int argc, char* argv[])
 			}
 		else
 		if (strncmp(*argv,"-a",2)==0) {
-			ap_index = (uint)atoi((*argv)+2);
+			ap_index = (int)atoi((*argv)+2);
 			if (ap_index>AP_56) {
 				printf("Invalid a-priori information index\n");
 				syntax();
