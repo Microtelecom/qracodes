@@ -56,8 +56,13 @@
 	#include <process.h>   // _beginthread
 #endif
 
-#if __linux__
-#include <unistd.h>
+#if defined(__linux__)
+
+// remove unwanted macros
+#define __cdecl
+#define _endthread()
+
+// implements Windows API
 #include <time.h>
 
 unsigned GetTickCount(void) {
@@ -68,10 +73,6 @@ unsigned GetTickCount(void) {
     theTick += ts.tv_sec * 1000;
     return theTick;
 }
-
-#define __cdecl
-#define _endthread()
-#include <pthread.h>
 
 // Convert Windows millisecond sleep
 //
@@ -84,6 +85,10 @@ unsigned GetTickCount(void) {
 #include <unistd.h>
 #define Sleep(x)  usleep(x*1000)
 
+#endif
+
+#if defined(__linux__) || ( defined(__MINGW32__) || defined (__MIGW64__) )
+#include <pthread.h>
 #endif
 
 #if __APPLE__
@@ -177,7 +182,7 @@ typedef struct {
 	float   *r;				//[qra_N*qra_M];	received samples (amplitude)   buffer
 	float   *ix;			// [qra_N*qra_M];	// intrinsic information to the MP algorithm
 	float   *ex;			// [qra_N*qra_M];	// extrinsic information from the MP algorithm
-#ifdef __linux__
+#if defined(__linux__) || ( defined(__MINGW32__) || defined (__MIGW64__) )
 	pthread_t thread;
 #endif
 } wer_test_ds;
@@ -389,7 +394,7 @@ void wer_test_thread(wer_test_ds *pdata)
 	_endthread();
 }
 
-#if __linux__
+#if defined(__linux__) || ( defined(__MINGW32__) || defined (__MIGW64__) )
 
 void *wer_test_pthread(void *p)
 {
@@ -484,7 +489,7 @@ int wer_test_proc(const qracode *pcode, uint nthreads, int chtype, uint ap_index
 			wt[j].nerrsu=0;
 			wt[j].done = 0;
 			wt[j].stop = 0;
-			#ifdef __linux__
+			#if defined(__linux__) || ( defined(__MINGW32__) || defined (__MIGW64__) )
 			if (pthread_create (&wt[j].thread, 0, wer_test_pthread, &wt[j])) {
 				perror ("Creating thread: ");
 				exit (255);
