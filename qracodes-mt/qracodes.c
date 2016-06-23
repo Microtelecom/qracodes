@@ -28,6 +28,7 @@
 #include "qracodes.h"
 
 
+
 #define QRA_DEBUG 
 
 int qra_encode(const qracode *pcode, int *y, const int *x)
@@ -216,7 +217,7 @@ void pd_print(int imsg,float *ppd,int size)
 #define ADDRMSG(fp, msgidx)    PD_ROWADDR(fp,qra_M,msgidx)
 #define C2VMSG(msgidx)         PD_ROWADDR(qra_c2vmsg,qra_M,msgidx)
 #define V2CMSG(msgidx)         PD_ROWADDR(qra_v2cmsg,qra_M,msgidx)
-#define MSGPERM(logw)          PD_ROWADDR((const unsigned int *)qra_pmat,qra_M,logw)
+#define MSGPERM(logw)          PD_ROWADDR(qra_pmat,qra_M,logw)
 
 #define QRACODE_MAX_M	256	// Maximum alphabet size handled by qra_extrinsic
 
