@@ -198,7 +198,7 @@ typedef void( __cdecl *pwer_test_thread)(wer_test_ds*);
 // g(x) = x^6 + x^2 + x + 1 (as suggested by Joe. See:  https://users.ece.cmu.edu/~koopman/crc/)
 // #define CRC6_GEN_POL 0x38  // MSB=a0 LSB=a5. Simulation results are similar
 
-int calc_crc6(uint *x, int sz)
+int calc_crc6(int *x, int sz)
 {
 	int k,j,t,sr = 0;
 	for (k=0;k<sz;k++) {
@@ -353,7 +353,7 @@ void wer_test_thread(wer_test_ds *pdata)
 				j = 0; diff = 0;
 				for (k=0;k<(qra_K-1);k++) 
 					diff |= (ydec[k]!=x[k]);
-				t = calc_crc6(ydec,(int)qra_K-1);
+				t = calc_crc6(ydec,qra_K-1);
 				if (t!=ydec[k]) // error detected - crc doesn't matches
 					nerrs  += 1;
 				else
