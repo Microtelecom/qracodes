@@ -51,7 +51,7 @@
 
 
 // static functions declarations -------------------------------------------------
-static int  calc_crc6(const uint *x, uint sz);
+static int  calc_crc6(const int *x, int sz);
 static void ix_mask(float *dst, const float *src, const int *mask, const int *x);
 static int  qra65_do_decode(int *x, const float *pix, const int *ap_mask, const int *ap_x);
 
@@ -110,8 +110,8 @@ qra65codec *qra65_init(int flags, const int mycall)
 
 void qra65_encode(qra65codec *pcodec, int *y, const int *x)
 {
-	uint encx[QRA65_KC];	// encoder input buffer
-	uint ency[QRA65_NC];	// encoder output buffer
+	int encx[QRA65_KC];	// encoder input buffer
+	int ency[QRA65_NC];	// encoder output buffer
 
 	int call1,call2,grid;
 
@@ -153,7 +153,7 @@ void qra65_encode(qra65codec *pcodec, int *y, const int *x)
 
 int qra65_decode(qra65codec *pcodec, int *x, const float *rxen)
 {
-	uint k;
+	int k;
 	float *srctmp, *dsttmp;
 	float ix[QRA65_NC*QRA65_M];		// (depunctured) intrisic information to the decoder
 	int rc;
@@ -184,16 +184,16 @@ int qra65_decode(qra65codec *pcodec, int *x, const float *rxen)
 
 	if (pcodec->apflags!=QRA_AUTOAP) return rc; // rc<0 = unsuccessful decode
 
-	// attempt to decode CQ calls
+	// attempt to decode CQ/QRZ calls
 	rc = qra65_do_decode(x, ix, pcodec->apmask_cqqrz, pcodec->apmsg_cqqrz);	    // 27 bit AP
 	if (rc>=0) return 1;	// decoded [cq/qrz ? ?]
-	rc = qra65_do_decode(x, ix, pcodec->apmask_cqqrz_ooo, pcodec->apmsg_cqqrz);	// 44 bit AP
+	rc = qra65_do_decode(x, ix, pcodec->apmask_cqqrz_ooo, pcodec->apmsg_cqqrz);	// 42 bit AP
 	if (rc>=0) return 2;	// decoded [cq ? ooo]
 
 	// attempt to decode calls directed to us (mycall)
 	rc = qra65_do_decode(x, ix, pcodec->apmask_call1, pcodec->apmsg_call1);		// 29 bit AP
 	if (rc>=0) return 3;	// decoded [mycall ? ?]
-	rc = qra65_do_decode(x, ix, pcodec->apmask_call1_ooo, pcodec->apmsg_call1);	// 45 bit AP
+	rc = qra65_do_decode(x, ix, pcodec->apmask_call1_ooo, pcodec->apmsg_call1);	// 44 bit AP
 	if (rc>=0) return 4;	// decoded [mycall ? ooo]
 
 	// if apsrccall is set attempt to decode [mycall srccall ?] msgs
@@ -217,7 +217,7 @@ static int qra65_do_decode(int *x, const float *pix, const int *ap_mask, const i
 
 	float v2cmsg[QRA65_NMSG*QRA65_M];	// buffers for the decoder messages
 	float c2vmsg[QRA65_NMSG*QRA65_M];
-	uint  xdec[QRA65_KC];
+	int  xdec[QRA65_KC];
 
 	if (ap_mask==NULL) { // no a-priori information
 		ixsrc = pix;	 // intrinsic source is what passed as argument
@@ -256,7 +256,7 @@ static int qra65_do_decode(int *x, const float *pix, const int *ap_mask, const i
 // g(x) = x^6 + x^2 + x + 1 (as suggested by Joe. See:  https://users.ece.cmu.edu/~koopman/crc/)
 // #define CRC6_GEN_POL 0x38  // MSB=a0 LSB=a5. Simulation results are similar
 
-static int calc_crc6(const uint *x, uint sz)
+static int calc_crc6(const int *x, int sz)
 {
 	// todo: compute it faster using a look up table
 	int k,j,t,sr = 0;
@@ -277,7 +277,7 @@ static void ix_mask(float *dst, const float *src, const int *mask, const int *x)
 {
 	// mask intrinsic information (channel observations) with a priori knowledge
 	
-	uint k,kk, smask;
+	int k,kk, smask;
 	float *row;
 
 	memcpy(dst,src,(QRA65_NC*QRA65_M)*sizeof(float));

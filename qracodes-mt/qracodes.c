@@ -27,10 +27,6 @@
 
 #include "qracodes.h"
 
-
-
-#define QRA_DEBUG 
-
 int qra_encode(const qracode *pcode, int *y, const int *x)
 {
 	int k,j,kk,jj;

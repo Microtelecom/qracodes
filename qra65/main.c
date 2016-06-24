@@ -166,12 +166,12 @@ float *mfskchannel(int *x, int channel_type, float EbNodB)
 #define GRID_73 		0x7ED0		// 73
 
 char decode_type[6][32] = {
-	"[?    ?    ?] AP0",
-	"[CQ   ?    ?] AP27",
-	"[CQ   ?     ] AP44",
-	"[CALL ?    ?] AP29",
-	"[CALL ?     ] AP45",
-	"[CALL CALL ?] AP57"
+	"[?      ?    ?] AP0",
+	"[CQ/QRZ ?    ?] AP27",
+	"[CQ/QRZ ?     ] AP42",
+	"[CALL   ?    ?] AP29",
+	"[CALL   ?     ] AP44",
+	"[CALL   CALL ?] AP57"
 };
 
 int test_proc_1(int channel_type, float EbNodB, int mode)
@@ -280,12 +280,12 @@ int test_proc_2(int channel_type, float EbNodB, int mode)
 	// In the case a decode is successful the return code of the qra65_decode function
 	// indicates the amount of a-priori information required to decode the received message
 	// accordingly to this table:
-	//	rc=0    [?    ?    ?] AP0
-	//  rc=1    [CQ   ?    ?] AP27
-	//  rc=2    [CQ   ?     ] AP44
-	//  rc=3    [CALL ?    ?] AP29
-	//  rc=4    [CALL ?     ] AP45
-	//  rc=5    [CALL CALL ?] AP57
+	//	rc=0    [?      ?    ?] AP0
+	//  rc=1    [CQ/QRZ ?    ?] AP27
+	//  rc=2    [CQ/QRZ ?     ] AP42
+	//  rc=3    [CALL   ?    ?] AP29
+	//  rc=4    [CALL   ?     ] AP44
+	//  rc=5    [CALL   CALL ?] AP57
 	//  The return code is <0 when decoding is unsuccessful
 
 	// This test simulates the situation ntx times and reports how many times
