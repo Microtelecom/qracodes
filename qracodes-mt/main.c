@@ -107,7 +107,7 @@
 
 // -----------------------------------------------------------------------------------
 
-#define NTHREADS_MAX 24	
+#define NTHREADS_MAX 24
 
 // channel types
 #define CHANNEL_AWGN     0
@@ -231,7 +231,8 @@ void wer_test_thread(wer_test_ds *pdata)
 	const float EbNodBMetric = 2.8f; 
 	const float EbNoMetric   = (float)pow(10,EbNodBMetric/10);
 
-	int k,t,j,diff;
+	int k,t,diff;
+	
 	float R;
 	float EsNoMetric;
 	float EbNo, EsNo, Es, A;
@@ -350,7 +351,7 @@ void wer_test_thread(wer_test_ds *pdata)
 			// look for undetected errors
 			if (code_type==QRATYPE_CRC || code_type==QRATYPE_CRCPUNCTURED) {
 
-				j = 0; diff = 0;
+				diff = 0;
 				for (k=0;k<(qra_K-1);k++) 
 					diff |= (ydec[k]!=x[k]);
 				t = calc_crc6(ydec,qra_K-1);
@@ -428,14 +429,12 @@ void ix_mask(const qracode *pcode, float *r, const int *mask, const int *x)
 
 int wer_test_proc(const qracode *pcode, int nthreads, int chtype, int ap_index, float *EbNodB, int *nerrstgt, int nitems)
 {
-	int k,nn,j,nt,nerrs,nerrsu,nd;
+	int k,j,nt,nerrs,nerrsu,nd;
 	int cini,cend; 
 	char fnameout[128];
 	FILE *fout;
 	wer_test_ds wt[NTHREADS_MAX];
 	float pe,avgt;
-
-	nn = sizeof(EbNodB)/sizeof(float);	// size of the EbNo array to test
 
 	if (nthreads>NTHREADS_MAX) {
 		printf("Error: nthreads should be <=%d\n",NTHREADS_MAX);
@@ -651,6 +650,9 @@ int main(int argc, char* argv[])
 		else
 		if (strncmp(*argv,"-t",2)==0) {
 			nthreads = (int)atoi((*argv)+2);
+			
+			printf("nthreads = %d\n",nthreads);
+			
 			if (nthreads>NTHREADS_MAX) {
 				printf("Invalid number of threads\n");
 				syntax();

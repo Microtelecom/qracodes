@@ -412,6 +412,10 @@ int main(int argc, char* argv[])
 		}
 
 	EbNodB = SNRdB+29.1f;
+	
+#if defined(__linux__) || defined (__unix__)
+	srand48(GetTickCount());
+#endif
 
 	if (testtype==0) {
 		for (k=0;k<nqso;k++) {
