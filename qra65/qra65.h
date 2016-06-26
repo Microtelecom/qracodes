@@ -102,12 +102,12 @@ int  qra65_decode(qra65codec *pcodec, int *x, const float *r);
 //  The return code is <0 when decoding is unsuccessful
 //  -16 indicates that the definition of QRA65_NMSG does not match what required by the code
 //  If the decoding process is successfull the return code is accordingly to the following table
-//		rc=0    [?    ?    ?] AP0	(decoding with no a-priori)
-//		rc=1    [CQ   ?    ?] AP27
-//		rc=2    [CQ   ?     ] AP44
-//		rc=3    [CALL ?    ?] AP29
-//		rc=4    [CALL ?     ] AP45
-//		rc=5    [CALL CALL ?] AP57
+//		rc=0    [?      ?    ?] AP0	 (decoding with no a-priori)
+//		rc=1    [CQ/QRZ ?    ?] AP27
+//		rc=2    [CQ/QRZ ?     ] AP42
+//		rc=3    [CALL   ?    ?] AP29
+//		rc=4    [CALL   ?     ] AP44
+//		rc=5    [CALL   CALL ?] AP57
 //  return codes in the range 1-5 indicate the amount of a-priori information which was required
 //  to decode the received message and are possible only when the QRA_AUTOAP mode has been enabled.
 // -------------------------------------------------------------------------------------------

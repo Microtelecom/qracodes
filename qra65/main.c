@@ -14,12 +14,12 @@
 //    main.c		 - this file
 //    qra65.c/.h     - qra65 mode encode/decoding functions
 // 
-//    ..\qracodes\normrnd.c/.h   - random gaussian number generator
-//    ..\qracodes\npfwht.c/.h    - Fast Walsh-Hadamard Transforms
-//    ..\qracodes\pdmath.c/.h    - Elementary math on probability distributions
-//    ..\qracodes\qra12_63_64_irr_b.c/.h - Tables for a QRA(12,63) irregular RA code over GF(64)
-//    ..\qracodes\qra13_64_64_irr_e.c/.h - Tables for a QRA(13,64) irregular RA code "     "
-//    ..\qracodes\qracodes.c/.h  - QRA codes encoding/decoding functions
+//    ../qracodes-mt/normrnd.c/.h   - random gaussian number generator
+//    ../qracodes-mt/npfwht.c/.h    - Fast Walsh-Hadamard Transforms
+//    ../qracodes-mt/pdmath.c/.h    - Elementary math on probability distributions
+//    ../qracodes-mt/qra12_63_64_irr_b.c/.h - Tables for a QRA(12,63) irregular RA code over GF(64)
+//    ../qracodes-mt/qra13_64_64_irr_e.c/.h - Tables for a QRA(13,64) irregular RA code "     "
+//    ../qracodes-mt/qracodes.c/.h  - QRA codes encoding/decoding functions
 //
 // -------------------------------------------------------------------------------
 //
@@ -74,9 +74,10 @@ unsigned GetTickCount(void) {
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "qra65.h"
-#include "..\qracodes\normrnd.h"		   // gaussian numbers generator
+#include "../qracodes-mt/normrnd.h"		   // gaussian numbers generator
 
 // -----------------------------------------------------------------------------------
 
@@ -165,12 +166,12 @@ float *mfskchannel(int *x, int channel_type, float EbNodB)
 #define GRID_73 		0x7ED0		// 73
 
 char decode_type[6][32] = {
-	"[?    ?    ?] AP0",
-	"[CQ   ?    ?] AP27",
-	"[CQ   ?     ] AP44",
-	"[CALL ?    ?] AP29",
-	"[CALL ?     ] AP45",
-	"[CALL CALL ?] AP57"
+	"[?      ?    ?] AP0",
+	"[CQ/QRZ ?    ?] AP27",
+	"[CQ/QRZ ?     ] AP42",
+	"[CALL   ?    ?] AP29",
+	"[CALL   ?     ] AP44",
+	"[CALL   CALL ?] AP57"
 };
 
 int test_proc_1(int channel_type, float EbNodB, int mode)
@@ -279,12 +280,12 @@ int test_proc_2(int channel_type, float EbNodB, int mode)
 	// In the case a decode is successful the return code of the qra65_decode function
 	// indicates the amount of a-priori information required to decode the received message
 	// accordingly to this table:
-	//	rc=0    [?    ?    ?] AP0
-	//  rc=1    [CQ   ?    ?] AP27
-	//  rc=2    [CQ   ?     ] AP44
-	//  rc=3    [CALL ?    ?] AP29
-	//  rc=4    [CALL ?     ] AP45
-	//  rc=5    [CALL CALL ?] AP57
+	//	rc=0    [?      ?    ?] AP0
+	//  rc=1    [CQ/QRZ ?    ?] AP27
+	//  rc=2    [CQ/QRZ ?     ] AP42
+	//  rc=3    [CALL   ?    ?] AP29
+	//  rc=4    [CALL   ?     ] AP44
+	//  rc=5    [CALL   CALL ?] AP57
 	//  The return code is <0 when decoding is unsuccessful
 
 	// This test simulates the situation ntx times and reports how many times
@@ -411,6 +412,10 @@ int main(int argc, char* argv[])
 		}
 
 	EbNodB = SNRdB+29.1f;
+	
+#if defined(__linux__) || defined (__unix__)
+	srand48(GetTickCount());
+#endif
 
 	if (testtype==0) {
 		for (k=0;k<nqso;k++) {

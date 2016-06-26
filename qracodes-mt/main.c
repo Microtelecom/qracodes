@@ -56,8 +56,13 @@
 	#include <process.h>   // _beginthread
 #endif
 
-#if __linux__
-#include <unistd.h>
+#if defined(__linux__)
+
+// remove unwanted macros
+#define __cdecl
+#define _endthread()
+
+// implements Windows API
 #include <time.h>
 
  unsigned int GetTickCount(void) {
@@ -68,6 +73,22 @@
     theTick += ts.tv_sec * 1000;
     return theTick;
 }
+
+// Convert Windows millisecond sleep
+//
+// VOID WINAPI Sleep(_In_ DWORD dwMilliseconds);
+//
+// to Posix usleep (in microseconds)
+//
+// int usleep(useconds_t usec);
+//
+#include <unistd.h>
+#define Sleep(x)  usleep(x*1000)
+
+#endif
+
+#if defined(__linux__) || ( defined(__MINGW32__) || defined (__MIGW64__) )
+#include <pthread.h>
 #endif
 
 #if __APPLE__
@@ -86,7 +107,7 @@
 
 // -----------------------------------------------------------------------------------
 
-#define NTHREADS_MAX 24	
+#define NTHREADS_MAX 24
 
 // channel types
 #define CHANNEL_AWGN     0
@@ -161,7 +182,9 @@ typedef struct {
 	float   *r;				//[qra_N*qra_M];	received samples (amplitude)   buffer
 	float   *ix;			// [qra_N*qra_M];	// intrinsic information to the MP algorithm
 	float   *ex;			// [qra_N*qra_M];	// extrinsic information from the MP algorithm
-
+#if defined(__linux__) || ( defined(__MINGW32__) || defined (__MIGW64__) )
+	pthread_t thread;
+#endif
 } wer_test_ds;
 
 typedef void( __cdecl *pwer_test_thread)(wer_test_ds*);
@@ -208,7 +231,8 @@ void wer_test_thread(wer_test_ds *pdata)
 	const float EbNodBMetric = 2.8f; 
 	const float EbNoMetric   = (float)pow(10,EbNodBMetric/10);
 
-	int k,t,j,diff;
+	int k,t,diff;
+	
 	float R;
 	float EsNoMetric;
 	float EbNo, EsNo, Es, A;
@@ -327,7 +351,7 @@ void wer_test_thread(wer_test_ds *pdata)
 			// look for undetected errors
 			if (code_type==QRATYPE_CRC || code_type==QRATYPE_CRCPUNCTURED) {
 
-				j = 0; diff = 0;
+				diff = 0;
 				for (k=0;k<(qra_K-1);k++) 
 					diff |= (ydec[k]!=x[k]);
 				t = calc_crc6(ydec,qra_K-1);
@@ -370,6 +394,17 @@ void wer_test_thread(wer_test_ds *pdata)
 	_endthread();
 }
 
+#if defined(__linux__) || ( defined(__MINGW32__) || defined (__MIGW64__) )
+
+void *wer_test_pthread(void *p)
+{
+	wer_test_thread ((wer_test_ds *)p);
+	return 0;
+}
+
+#endif
+
+
 void ix_mask(const qracode *pcode, float *r, const int *mask, const int *x)
 {
 	// mask intrinsic information (channel observations) with a priori knowledge
@@ -394,14 +429,12 @@ void ix_mask(const qracode *pcode, float *r, const int *mask, const int *x)
 
 int wer_test_proc(const qracode *pcode, int nthreads, int chtype, int ap_index, float *EbNodB, int *nerrstgt, int nitems)
 {
-	int k,nn,j,nt,nerrs,nerrsu,nd;
+	int k,j,nt,nerrs,nerrsu,nd;
 	int cini,cend; 
 	char fnameout[128];
 	FILE *fout;
 	wer_test_ds wt[NTHREADS_MAX];
 	float pe,avgt;
-
-	nn = sizeof(EbNodB)/sizeof(float);	// size of the EbNo array to test
 
 	if (nthreads>NTHREADS_MAX) {
 		printf("Error: nthreads should be <=%d\n",NTHREADS_MAX);
@@ -454,7 +487,14 @@ int wer_test_proc(const qracode *pcode, int nthreads, int chtype, int ap_index, 
 			wt[j].nerrsu=0;
 			wt[j].done = 0;
 			wt[j].stop = 0;
+			#if defined(__linux__) || ( defined(__MINGW32__) || defined (__MIGW64__) )
+			if (pthread_create (&wt[j].thread, 0, wer_test_pthread, &wt[j])) {
+				perror ("Creating thread: ");
+				exit (255);
+			}
+			#else
 			_beginthread((void*)(void*)wer_test_thread,0,&wt[j]);
+			#endif
 			}
 
 		nd = 0;
@@ -562,6 +602,15 @@ void syntax(void)
 	printf("                       1.6 1000\n");
 	printf("                       ...\n");
 	printf("                       (lines beginning with a # are treated as comments\n\n");
+	
+	printf("                       sizeof(unsigned int)       = %lu bytes\n", (unsigned long) sizeof(unsigned int));
+	printf("                       sizeof(unsigned long)      = %lu bytes\n", (unsigned long) sizeof(unsigned long));
+	printf("                       sizeof(unsigned long long) = %lu bytes\n", (unsigned long) sizeof(unsigned long long));
+	printf("                       sizeof(unsigned float)     = %lu bytes\n", (unsigned long) sizeof(float));
+	printf("                       sizeof(unsigned double)    = %lu bytes\n", (unsigned long) sizeof(double));
+	printf("                       sizeof(void *)             = %lu bytes\n", (unsigned long) sizeof(void *));
+	
+	printf("\n\n");
 }
 
 #define SIM_POINTS_MAX 20
@@ -601,6 +650,9 @@ int main(int argc, char* argv[])
 		else
 		if (strncmp(*argv,"-t",2)==0) {
 			nthreads = (int)atoi((*argv)+2);
+			
+			printf("nthreads = %d\n",nthreads);
+			
 			if (nthreads>NTHREADS_MAX) {
 				printf("Invalid number of threads\n");
 				syntax();

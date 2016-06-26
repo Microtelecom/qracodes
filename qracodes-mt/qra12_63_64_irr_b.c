@@ -507,16 +507,16 @@ const qracode qra_12_63_64_irr_b = {
 		QRATYPE_NORMAL,
 		qra_R,
 		CODE_NAME,
-		qra_acc_input_idx,	
+		qra_acc_input_idx,
 		qra_acc_input_wlog,
-		qra_log,
-		qra_exp,
-		qra_msgw,
-		qra_vdeg,
-		qra_cdeg,
-		qra_v2cmidx,
-		qra_c2vmidx,
-		qra_pmat
+		qra_log,           
+		qra_exp,           
+		qra_msgw,          
+		qra_vdeg,          
+		qra_cdeg,          
+		qra_v2cmidx,       
+		qra_c2vmidx,       
+		qra_pmat           
 };
 
 #undef qra_K
