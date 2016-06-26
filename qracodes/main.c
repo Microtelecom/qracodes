@@ -228,7 +228,7 @@ void wer_test_rayleigh(void)
 
 }
 
-//#define TEST_WER_AWGN
+#define TEST_WER_AWGN
 //#define TEST_WER_RAYLEIGH
 
 #if !defined TEST_WER_AWGN && !defined TEST_WER_RAYLEIGH
