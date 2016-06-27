@@ -60,7 +60,6 @@
 
 // remove unwanted macros
 #define __cdecl
-#define _endthread()
 
 // implements Windows API
 #include <time.h>
@@ -107,7 +106,7 @@
 
 // -----------------------------------------------------------------------------------
 
-#define NTHREADS_MAX 24
+#define NTHREADS_MAX 160
 
 // channel types
 #define CHANNEL_AWGN     0
@@ -391,7 +390,9 @@ void wer_test_thread(wer_test_ds *pdata)
 
 	pdata->done=1;
 
+	#if _WIN32
 	_endthread();
+	#endif
 }
 
 #if defined(__linux__) || ( defined(__MINGW32__) || defined (__MIGW64__) )
@@ -527,9 +528,19 @@ int wer_test_proc(const qracode *pcode, int nthreads, int chtype, int ap_index, 
 
 		// wait for the working threads to exit
 		for (j=0;j<nthreads;j++) 
+		#if defined(__linux__) || ( defined(__MINGW32__) || defined (__MIGW64__) )
+		{
+			void *rc;
+			if (pthread_join (wt[j].thread, &rc)) {
+				perror ("Waiting working threads to exit");
+				exit (255);
+			}
+		}
+		#else
 			while(wt[j].done==0)
 				Sleep(1);
 
+		#endif
 		printf("\n");
 		fflush (stdout);
 
