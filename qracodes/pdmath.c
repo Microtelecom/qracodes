@@ -16,7 +16,7 @@
 //    GNU General Public License for more details.
 
 //    You should have received a copy of the GNU General Public License
-//    along with qra_codes source distribution.  
+//    along with qracodes source distribution.  
 //    If not, see <http://www.gnu.org/licenses/>.
 
 #include "pdmath.h"
@@ -331,14 +331,14 @@ void pd_memset(float *dst, const float *src, int ndim, int nitems)
 		}
 }
 
-void  pd_fwdperm(float *dst, float *src, const unsigned int *perm, int ndim)
+void  pd_fwdperm(float *dst, float *src, const  int *perm, int ndim)
 {
 	// TODO: non-loop implementation
 	while (ndim--) 
 		dst[ndim] = src[perm[ndim]];
 }
 
-void  pd_bwdperm(float *dst, float *src, const unsigned int *perm, int ndim)
+void  pd_bwdperm(float *dst, float *src, const  int *perm, int ndim)
 {
 	// TODO: non-loop implementation
 	while (ndim--) 

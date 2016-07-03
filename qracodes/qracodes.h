@@ -16,22 +16,61 @@
 //    GNU General Public License for more details.
 
 //    You should have received a copy of the GNU General Public License
-//    along with qra_codes source distribution.  
+//    along with qracodes source distribution.  
 //    If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef _qracodes_h_
 #define _qracodes_h_
 
-typedef unsigned int uint;
+// type of codes
+#define QRATYPE_NORMAL			0x00 // normal code 
+#define QRATYPE_CRC 			0x01 // code with crc - last information symbol is a CRC
+#define QRATYPE_CRCPUNCTURED 	0x02 // the CRC symbol is punctured (not sent along the channel)
+
+
+typedef struct {
+	// code parameters
+	const int K;			// number of information symbols
+	const int N;			// codeword length in symbols
+	const int m;			// bits/symbol
+	const int M;			// Symbol alphabet cardinality (2^m)
+	const int a;			// code grouping factor
+	const int NC;			// number of check symbols (N-K)
+	const int V;			// number of variables in the code graph (N)
+	const int C;			// number of factors in the code graph (N +(N-K)+1)
+	const int NMSG;		// number of msgs in the code graph
+	const int MAXVDEG;		// maximum variable degree 
+	const int MAXCDEG;		// maximum factor degree
+	const int type;		// see QRATYPE_xx defines
+	const float R;			// code rate (K/N)
+	const char  name[64];	// code name
+	// tables used by the encoder
+	const int	 *acc_input_idx;	
+	const int   *acc_input_wlog;
+	const int	 *gflog;
+	const int   *gfexp;
+	// tables used by the decoder -------------------------
+	const int *msgw;
+	const int *vdeg;
+	const int *cdeg;
+	const int  *v2cmidx;
+	const int  *c2vmidx;
+	const int  *gfpmat;
+} qracode;
+// Uncomment the header file of the code which needs to be tested
+
+//#include "qra12_63_64_irr_b.h"  // irregular code (12,63) over GF(64)
+//#include "qra13_64_64_irr_e.h"  // irregular code with good performance and best UER protection at AP56
+//#include "qra13_64_64_reg_a.h"  // regular code with good UER but perf. inferior to that of code qra12_63_64_irr_b
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int  qra_encode(uint *y, const uint *x);
-void qra_mfskbesselmetric(float *pix, float EsNoMetric);
-int  qra_extrinsic(float *pex, const float *pix, int maxiter);
-void qra_mapdecode(uint *xdec, float *pex, const float *pix);
+int  qra_encode(const qracode *pcode, int *y, const int *x);
+void qra_mfskbesselmetric(float *pix, const float *rsq, const int m, const int N, float EsNoMetric);
+int  qra_extrinsic(const qracode *pcode, float *pex, const float *pix, int maxiter,float *qra_v2cmsg,float *qra_c2vmsg);
+void qra_mapdecode(const qracode *pcode, int *xdec, float *pex, const float *pix);
 
 #ifdef __cplusplus
 }

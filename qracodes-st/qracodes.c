@@ -16,7 +16,7 @@
 //    GNU General Public License for more details.
 
 //    You should have received a copy of the GNU General Public License
-//    along with qracodes source distribution.  
+//    along with qra_codes source distribution.  
 //    If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdio.h>
@@ -26,97 +26,55 @@
 #include "pdmath.h"
 
 #include "qracodes.h"
+#include "qra12_63_64_irr_b.h"		// tables for the P(12,63) Q-ary RA code over GF(64)
 
-int qra_encode(const qracode *pcode, int *y, const int *x)
+// #define QRA_DEBUG 
+
+// message tables used by the qra_extrinsic
+// table of the v->c messages
+static float qra_v2cmsg[qra_NMSG*qra_M];
+// table of the c->v messages
+static float qra_c2vmsg[qra_NMSG*qra_M];
+
+int qra_encode(uint *y, const uint *x)
 {
-	int k,j,kk,jj;
-	int t, chk = 0;
-
-	const int K = pcode->K;
-	const int M = pcode->M;
-	const int NC= pcode->NC;
-	const int a = pcode->a;
-	const int  *acc_input_idx  = pcode->acc_input_idx;
-	const int *acc_input_wlog = pcode->acc_input_wlog;
-	const int  *gflog		   = pcode->gflog;
-	const int *gfexp          = pcode->gfexp;
+	int k;
+	uint t, chk = 0;
 
 	// copy the systematic symbols to destination
-	memcpy(y,x,K*sizeof(int));
+	memcpy(y,x,qra_K*sizeof(uint));
 
-	y = y+K;	// point to check symbols
+	y = y+qra_K;	// point to check symbols
 
 	// compute the code check symbols as a weighted accumulation of a permutated
 	// sequence of the (repeated) systematic input symbols:
 	// chk(k+1) = x(idx(k))*alfa^(logw(k)) + chk(k)
-	// (all operations performed over GF(M))
-
-	if (a==1) { // grouping factor = 1
-		for (k=0;k<NC;k++) {
-			t = x[acc_input_idx[k]];
-			if (t) {
-				// multiply input by weight[k] and xor it with previous check
-				t = (gflog[t] + acc_input_wlog[k])%(M-1);
-				t = gfexp[t];
-				chk ^=t;
-				}
-			y[k] = chk;
+	// (all operations performed over GF(qra_M))
+	for (k=0;k<qra_NC;k++) {
+		t = x[qra_acc_input_idx[k]];
+		if (t) {
+			// multiply input by weight[k] and xor it with previous check
+			t = (qra_log[t] + qra_acc_input_wlog[k])%(qra_M-1);
+			t = qra_exp[t];
+			chk ^=t;
 			}
-
-		#ifdef QRA_DEBUG
-			// verify that the encoder accumulator is terminated to 0
-			// (we designed the code this way so that Iex = 1 when Ia = 1)
-			t = x[acc_input_idx[k]];
-			if (t) {
-				t = (gflog[t] + acc_input_wlog[k])%(M-1);
-				t = gfexp[t];
-				// accumulation
-				chk ^=t;
-				}
-			return (chk==0);
-		#else
-			return 1;
-		#endif // QRA_DEBUG
+		y[k] = chk;
 		}
-	else { // grouping factor > 1
-		for (k=0;k<NC;k++) {
-			kk = a*k;
-			for (j=0;j<a;j++) {
-				jj = kk+j;
-				// irregular grouping support
-				if (acc_input_idx[jj]<0)
-					continue;
-				t = x[acc_input_idx[jj]];
-				if (t) {
-					// multiply input by weight[k] and xor it with previous check
-					t = (gflog[t] + acc_input_wlog[jj])%(M-1);
-					t = gfexp[t];
-					chk ^=t;
-					}
-				}
-			y[k] = chk;
-			}
-		#ifdef QRA_DEBUG
-			// verify that the encoder accumulator is terminated to 0
-			// (we designed the code this way so that Iex = 1 when Ia = 1)
-			kk = a*k;
-			for (j=0;j<a;j++) {
-				jj = kk+j;
-				if (acc_input_idx[jj]<0)
-					continue;
-				t = x[acc_input_idx[jj]];
-				if (t) {
-					// multiply input by weight[k] and xor it with previous check
-					t = (gflog[t] + acc_input_wlog[jj])%(M-1);
-					t = gfexp[t];
-					chk ^=t;
-					}
-				}
-			return (chk==0);
-		#else
-			return 1;
-		#endif // QRA_DEBUG
-		} 
+
+#ifdef QRA_DEBUG
+	// verify that the encoder accumulator is terminated to 0
+	// (we designed the code this way so that Iex = 1 when Ia = 1)
+	t = x[qra_acc_input_idx[k]];
+	if (t) {
+		t = (qra_log[t] + qra_acc_input_wlog[k])%(qra_M-1);
+		t = qra_exp[t];
+		// accumulation
+		chk ^=t;
+		}
+	return (chk==0);
+#else
+	return 1;
+#endif
 }
 
 static void qra_ioapprox(float *src, float C, int nitems)
@@ -142,19 +100,19 @@ static void qra_ioapprox(float *src, float C, int nitems)
 }
 
 
-void qra_mfskbesselmetric(float *pix, const float *rsq, const int m, const int N, float EsNoMetric)
+void qra_mfskbesselmetric(float *pix, float EsNoMetric)
 {
 	// Computes the codeword symbols intrinsic probabilities
 	// given the square of the received input amplitudes.
 
-	// The input vector rqs must be a linear array of size M*N, where M=2^m,
+	// The input vector must be a linear array of size qra_M*qra_N
 	// containing the squared amplitudes (rp*rp+rq*rq) of the input samples
 
-	// First symbol amplitudes should be stored in the first M positions,
-	// second symbol amplitudes stored at positions [M ... 2*M-1], and so on.
+	// First symbol amplitudes should be stored in the first qra_M positions,
+	// second symbol amplitudes stored at positions [qra_M..2*qraM_1], and so on.
 
-	// Output vector is the intrinsic symbol metric (the probability distribution)
-	// assuming that symbols are transmitted using a M-FSK modulation 
+	// Input vector is overwritten with the symbol metric values (their probability distribution)
+	// assuming that symbols are transmitted using a M-FSK modulation (M=qra_M) 
 	// and incoherent demodulation.
 
 	// As the input Es/No is generally unknown (as it cannot be exstimated accurately
@@ -165,38 +123,38 @@ void qra_mfskbesselmetric(float *pix, const float *rsq, const int m, const int N
 	// nevertheless it is usually better than a generic parameter-free metric which
 	// makes no assumptions on the input Es/No.
 
+	//  Note: the input buffer is overwritten with the intrinsic probabilities
+
 	int k;
 	float rsum = 0.f;
 	float sigmaest, cmetric;
-
-	const int M = 1<<m;
-	const int nsamples = M*N;
+	const int nsamples = qra_M*qra_N;
 
 	// compute total power and modulus of input signal
 	for (k=0;k<nsamples;k++) {
-		rsum = rsum+rsq[k];
-		pix[k] = (float)sqrt(rsq[k]);
+		rsum = rsum+pix[k];
+		pix[k] = (float)sqrt(pix[k]);
 		}
 
 	rsum = rsum/nsamples;	// average S+N	
 
-	// IMPORTANT NOTE: in computing the noise stdev it is assumed that 
-	// in the input amplitudes there's no strong interference!
-	// A more robust estimation can be done evaluating the histogram of the input amplitudes
-
-	sigmaest = (float)sqrt(rsum/(1.0f+EsNoMetric/M)/2); // estimated noise stdev
+	sigmaest = (float)sqrt(rsum/(1.0f+EsNoMetric/qra_M)/2); // estimated noise stdev
 	cmetric = (float)sqrt(2*EsNoMetric)/sigmaest;
 
-	for (k=0;k<N;k++) {
+	for (k=0;k<qra_N;k++) {
 		// compute bessel metric for each symbol in the codeword
-		qra_ioapprox(PD_ROWADDR(pix,M,k),cmetric,M);
+		qra_ioapprox(PD_ROWADDR(pix,qra_M,k),cmetric,qra_M);
 		// normalize to a probability distribution
-		pd_norm(PD_ROWADDR(pix,M,k),m);
+		pd_norm(PD_ROWADDR(pix,qra_M,k),qra_m);
 		}
 
 	return;
 }
 
+#define ADDRMSG(fp, msgidx)    PD_ROWADDR(fp,qra_M,msgidx)
+#define C2VMSG(msgidx)         PD_ROWADDR(qra_c2vmsg,qra_M,msgidx)
+#define V2CMSG(msgidx)         PD_ROWADDR(qra_v2cmsg,qra_M,msgidx)
+#define MSGPERM(logw)          PD_ROWADDR(qra_pmat,qra_M,logw)
 
 #ifdef QRA_DEBUG
 void pd_print(int imsg,float *ppd,int size)
@@ -209,41 +167,16 @@ void pd_print(int imsg,float *ppd,int size)
 }
 #endif
 
-
-#define ADDRMSG(fp, msgidx)    PD_ROWADDR(fp,qra_M,msgidx)
-#define C2VMSG(msgidx)         PD_ROWADDR(qra_c2vmsg,qra_M,msgidx)
-#define V2CMSG(msgidx)         PD_ROWADDR(qra_v2cmsg,qra_M,msgidx)
-#define MSGPERM(logw)          PD_ROWADDR(qra_pmat,qra_M,logw)
-
-#define QRACODE_MAX_M	256	// Maximum alphabet size handled by qra_extrinsic
-
-int qra_extrinsic(const qracode *pcode, 
-				  float *pex, 
-				  const float *pix, 
-				  int maxiter,
-				  float *qra_v2cmsg,
-				  float *qra_c2vmsg)
+int qra_extrinsic(float *pex, const float *pix, int maxiter)
 {
-	const int qra_M		= pcode->M;
-	const int qra_m		= pcode->m;
-	const int qra_V		= pcode->V;
-	const int qra_MAXVDEG  = pcode->MAXVDEG;
-	const int  *qra_vdeg    = pcode->vdeg;
-	const int qra_C		= pcode->C;
-	const int qra_MAXCDEG  = pcode->MAXCDEG;
-	const int *qra_cdeg    = pcode->cdeg;
-	const int  *qra_v2cmidx = pcode->v2cmidx;
-	const int  *qra_c2vmidx = pcode->c2vmidx;
-	const int  *qra_pmat    = pcode->gfpmat;
-	const int *qra_msgw    = pcode->msgw;
+	// TODO: pass the function pointers to message tables
+	// so that multiple instances of the function can be run on different threads (and/or CPU cores)
 
-//	float msgout[qra_M];		 // buffer to store temporary results
-	float msgout[QRACODE_MAX_M]; // we use a fixed size in order to avoid mallocs
-
-	float totex;	// total extrinsic information
+	float msgout[qra_M];	// buffer to store temporary results
+	float totex;			// total extrinsic information
 	int nit;		// current iteration
-	int nv;		// current variable
-	int nc;		// current check
+	int nv;			// current variable
+	int nc;			// current check
 	int k,kk;		// loop indexes
 
 	int ndeg;		// current node degree
@@ -254,12 +187,8 @@ int qra_extrinsic(const qracode *pcode,
 	int rc     = -1; // rc>=0  extrinsic converged to 1 at iteration rc (rc=0..maxiter-1)
 					 // rc=-1  no convergence in the given number of iterations
 					 // rc=-2  error in the code tables (code checks degrees must be >1)
-					 // rc=-3  M is larger than QRACODE_MAX_M
 
 
-
-	if (qra_M>QRACODE_MAX_M)
-		return -3;
 
 	// message initialization -------------------------------------------------------
 
@@ -446,7 +375,7 @@ int qra_extrinsic(const qracode *pcode,
 	return rc;
 }
 
-void qra_mapdecode(const qracode *pcode, int *xdec, float *pex, const float *pix)
+void qra_mapdecode(uint *xdec, float *pex, const float *pix)
 {
 // Maximum a posteriori probability decoding.
 // Given the intrinsic information (pix) and extrinsic information (pex) (computed with qra_extrinsic(...))
@@ -456,11 +385,7 @@ void qra_mapdecode(const qracode *pcode, int *xdec, float *pex, const float *pix
 // Returns:
 //	xdec[k] = decoded (information) symbols k=[0..qra_K-1]
 
-//  Note: pex is destroyed and overwritten with mapp
-
-	const int qra_M		= pcode->M;
-	const int qra_m		= pcode->m;
-	const int qra_K		= pcode->K;
+//  Note: pex is destroyed and overwritten with pmap
 
 	int k;
 

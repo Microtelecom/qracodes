@@ -179,19 +179,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\qracodes-mt\normrnd.c"
+				RelativePath="..\qracodes\normrnd.c"
 				>
 			</File>
 			<File
-				RelativePath="..\qracodes-mt\npfwht.c"
+				RelativePath="..\qracodes\npfwht.c"
 				>
 			</File>
 			<File
-				RelativePath="..\qracodes-mt\pdmath.c"
+				RelativePath="..\qracodes\pdmath.c"
 				>
 			</File>
 			<File
-				RelativePath="..\qracodes-mt\qra13_64_64_irr_e.c"
+				RelativePath="..\qracodes\qra13_64_64_irr_e.c"
 				>
 			</File>
 			<File
@@ -199,7 +199,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\qracodes-mt\qracodes.c"
+				RelativePath="..\qracodes\qracodes.c"
 				>
 			</File>
 		</Filter>
@@ -209,19 +209,19 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\qracodes-mt\normrnd.h"
+				RelativePath="..\qracodes\normrnd.h"
 				>
 			</File>
 			<File
-				RelativePath="..\qracodes-mt\npfwht.h"
+				RelativePath="..\qracodes\npfwht.h"
 				>
 			</File>
 			<File
-				RelativePath="..\qracodes-mt\pdmath.h"
+				RelativePath="..\qracodes\pdmath.h"
 				>
 			</File>
 			<File
-				RelativePath="..\qracodes-mt\qra13_64_64_irr_e.h"
+				RelativePath="..\qracodes\qra13_64_64_irr_e.h"
 				>
 			</File>
 			<File
@@ -229,7 +229,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\qracodes-mt\qracodes.h"
+				RelativePath="..\qracodes\qracodes.h"
 				>
 			</File>
 		</Filter>

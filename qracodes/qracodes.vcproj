@@ -3,9 +3,8 @@
 	ProjectType="Visual C++"
 	Version="9,00"
 	Name="qracodes"
-	ProjectGUID="{8540B348-B8F2-4104-84CB-6286AC19158B}"
+	ProjectGUID="{933A58F6-199B-4723-ACFE-3013E6DD9D0A}"
 	RootNamespace="qracodes"
-	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -41,13 +40,9 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				EnableEnhancedInstructionSet="2"
-				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -62,9 +57,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				LinkIncremental="2"
 				GenerateDebugInformation="true"
-				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -114,16 +107,21 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="true"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				RuntimeLibrary="2"
+				ExceptionHandling="0"
+				RuntimeLibrary="0"
+				StructMemberAlignment="4"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
-				EnableEnhancedInstructionSet="0"
-				UsePrecompiledHeader="0"
+				EnableEnhancedInstructionSet="2"
+				FloatingPointModel="2"
 				WarningLevel="3"
-				DebugInformationFormat="3"
+				DebugInformationFormat="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -137,8 +135,8 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
+				GenerateManifest="false"
+				GenerateDebugInformation="false"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -195,6 +193,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\qra13_64_64_irr_e.c"
+				>
+			</File>
+			<File
 				RelativePath=".\qracodes.c"
 				>
 			</File>
@@ -218,6 +220,10 @@
 			</File>
 			<File
 				RelativePath=".\qra12_63_64_irr_b.h"
+				>
+			</File>
+			<File
+				RelativePath=".\qra13_64_64_irr_e.h"
 				>
 			</File>
 			<File

@@ -1,10 +1,10 @@
 // qra12_63_64_irr_b.c
-// Code tables and defines for the Q-ary irregular RA code (12,63) over GF(64)
+// Encoding/Decoding tables for Q-ary RA code (12,63) over GF(64)
 // Code Name: qra12_63_64_irr_b
-// Systematic symbols repetition factors: 333344455567
-//
-// (c) 2016 - Nico Palermo, IV3NWV - Microtelecom Srl, Italy
-// ------------------------------------------------------------------------------
+// (12,63) RA Code over GF(64) - RF=333344455567
+
+// (c) 2016 - Nico Palermo - IV3NWV - Microtelecom Srl, Italy
+
 // This file is part of the qracodes project, a Forward Error Control
 // encoding/decoding package based on Q-ary RA (Repeat and Accumulate) LDPC codes.
 //
@@ -16,17 +16,18 @@
 //    but WITHOUT ANY WARRANTY; without even the implied warranty of
 //    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //    GNU General Public License for more details.
-
+//
 //    You should have received a copy of the GNU General Public License
-//    along with qra_codes source distribution.  
+//    along with qracodes source distribution.
 //    If not, see <http://www.gnu.org/licenses/>.
 
 #include "qra12_63_64_irr_b.h"
-/*
+
 #define qra_K       12 // number of information symbols
 #define qra_N       63 // codeword length in symbols
 #define qra_m        6 // bits/symbol
 #define qra_M       64 // Symbol alphabet cardinality
+#define qra_a		 1 // grouping factor
 #define qra_NC      51 // number of check symbols (N-K)
 
 // Defines used by the message passing decoder --------
@@ -34,14 +35,14 @@
 #define qra_V       63 // number of variables in the code graph (N)
 #define qra_C      115 // number of factors in the code graph (N +(N-K)+1)
 #define qra_NMSG   217 // number of msgs in the code graph
-#define qra_MAXVDEG    8 // maximum variable degree (intrinsic check included)
+#define qra_MAXVDEG    8 // maximum variable degree
 #define qra_MAXCDEG    3 // maximum factor degree
-#define qra_R     0.19048 // code rate (K/N)
-*/
-// Tables used by the encoder -------------------------
+#define qra_R     0.19048f // code rate (K/N)
+#define CODE_NAME "qra_12_63_64_irr_b"
+
 
 // table of the systematic symbols indexes in the accumulator chain
-const unsigned int qra_acc_input_idx[qra_NC+1] = {
+static const int qra_acc_input_idx[qra_NC+1] = {
   3,  11,   0,   1,   7,   8,   6,   5,  10,   4, 
  11,   9,   0,   2,   6,   7,   8,   4,  11,   5, 
  10,   2,   1,   9,   3,   8,   4,  11,   5,   7, 
@@ -51,7 +52,7 @@ const unsigned int qra_acc_input_idx[qra_NC+1] = {
 };
 
 // table of the systematic symbols weight logarithms over GF(M)
-const unsigned int qra_acc_input_wlog[qra_NC+1] = {
+static const  int qra_acc_input_wlog[qra_NC+1] = {
  39,   0,  34,  16,  25,   0,  34,  48,  19,  13, 
  29,  56,   0,   5,  39,  42,  31,   0,  10,   0, 
  57,  62,  33,  43,   0,  14,  22,  48,  28,  20, 
@@ -61,7 +62,7 @@ const unsigned int qra_acc_input_wlog[qra_NC+1] = {
 };
 
 // table of the logarithms of the elements of GF(M) (log(0) never used)
-const unsigned int qra_log[qra_M] = {
+static const int qra_log[qra_M] = {
  -1,   0,   1,   6,   2,  12,   7,  26,   3,  32, 
  13,  35,   8,  48,  27,  18,   4,  24,  33,  16, 
  14,  52,  36,  54,   9,  45,  49,  38,  28,  41, 
@@ -72,7 +73,7 @@ const unsigned int qra_log[qra_M] = {
 };
 
 // table of GF(M) elements given their logarithm
-const unsigned int qra_exp[qra_M-1] = {
+static const  int qra_exp[qra_M-1] = {
   1,   2,   4,   8,  16,  32,   3,   6,  12,  24, 
  48,  35,   5,  10,  20,  40,  19,  38,  15,  30, 
  60,  59,  53,  41,  17,  34,   7,  14,  28,  56, 
@@ -82,10 +83,8 @@ const unsigned int qra_exp[qra_M-1] = {
  57,  49,  33
 };
 
-// Tables used by the decoder -------------------------
-
 // table of the messages weight logarithms over GF(M)
-const unsigned int qra_msgw[qra_NMSG] = {
+static const  int qra_msgw[qra_NMSG] = {
   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
@@ -111,7 +110,7 @@ const unsigned int qra_msgw[qra_NMSG] = {
 };
 
 // table of the degrees of the variable nodes
-const unsigned int qra_vdeg[qra_V] = {
+static const  int qra_vdeg[qra_V] = {
   4,   4,   4,   4,   5,   5,   5,   6,   6,   6, 
   7,   8,   3,   3,   3,   3,   3,   3,   3,   3, 
   3,   3,   3,   3,   3,   3,   3,   3,   3,   3, 
@@ -122,7 +121,7 @@ const unsigned int qra_vdeg[qra_V] = {
 };
 
 // table of the degrees of the factor nodes
-const unsigned int qra_cdeg[qra_C] = {
+static const  int qra_cdeg[qra_C] = {
   1,   1,   1,   1,   1,   1,   1,   1,   1,   1, 
   1,   1,   1,   1,   1,   1,   1,   1,   1,   1, 
   1,   1,   1,   1,   1,   1,   1,   1,   1,   1, 
@@ -138,7 +137,7 @@ const unsigned int qra_cdeg[qra_C] = {
 };
 
 // table (uncompressed) of the v->c message indexes (-1=unused entry)
-const unsigned int qra_v2cmidx[qra_V*qra_MAXVDEG] = {
+static const int qra_v2cmidx[qra_V*qra_MAXVDEG] = {
   0,  65,  75, 101,  -1,  -1,  -1,  -1, 
   1,  66,  85, 110,  -1,  -1,  -1,  -1, 
   2,  76,  84, 106,  -1,  -1,  -1,  -1, 
@@ -205,7 +204,7 @@ const unsigned int qra_v2cmidx[qra_V*qra_MAXVDEG] = {
 };
 
 // table (uncompressed) of the c->v message indexes (-1=unused entry)
-const unsigned int qra_c2vmidx[qra_C*qra_MAXCDEG] = {
+static const int qra_c2vmidx[qra_C*qra_MAXCDEG] = {
   0,  -1,  -1,   1,  -1,  -1,   2,  -1,  -1,   3,  -1,  -1, 
   4,  -1,  -1,   5,  -1,  -1,   6,  -1,  -1,   7,  -1,  -1, 
   8,  -1,  -1,   9,  -1,  -1,  10,  -1,  -1,  11,  -1,  -1, 
@@ -238,7 +237,7 @@ const unsigned int qra_c2vmidx[qra_C*qra_MAXCDEG] = {
 };
 
 // permutation matrix to compute Prob(x*alfa^logw)
-const unsigned int qra_pmat[qra_M*qra_M] = {
+static const  int qra_pmat[qra_M*qra_M] = {
   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15, 
  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31, 
  32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47, 
@@ -493,5 +492,43 @@ const unsigned int qra_pmat[qra_M*qra_M] = {
  35,  33,  39,  37,  43,  41,  47,  45,  51,  49,  55,  53,  59,  57,  63,  61
 };
 
+const qracode qra_12_63_64_irr_b = {
+		qra_K,
+		qra_N,
+		qra_m,
+		qra_M,
+		qra_a,
+		qra_NC,
+		qra_V,
+		qra_C,
+		qra_NMSG,
+		qra_MAXVDEG,
+		qra_MAXCDEG,
+		QRATYPE_NORMAL,
+		qra_R,
+		CODE_NAME,
+		qra_acc_input_idx,
+		qra_acc_input_wlog,
+		qra_log,           
+		qra_exp,           
+		qra_msgw,          
+		qra_vdeg,          
+		qra_cdeg,          
+		qra_v2cmidx,       
+		qra_c2vmidx,       
+		qra_pmat           
+};
 
-
+#undef qra_K
+#undef qra_N
+#undef qra_m
+#undef qra_M
+#undef qra_a
+#undef qra_NC
+#undef qra_V
+#undef qra_C
+#undef qra_NMSG
+#undef qra_MAXVDEG
+#undef qra_MAXCDEG
+#undef qra_R
+#undef CODE_NAME

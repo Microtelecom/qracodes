@@ -1,4 +1,4 @@
-g++ -march=native -pthread -O3  -I../qracodes/                          \
+g++ -march=native -pthread -O3 -I../qracodes/                           \
 *.c                                                                     \
 ../qracodes/normrnd.c                                                   \
 ../qracodes/npfwht.c                                                    \
@@ -6,5 +6,5 @@ g++ -march=native -pthread -O3  -I../qracodes/                          \
 ../qracodes/qra12_63_64_irr_b.c                                         \
 ../qracodes/qra13_64_64_irr_e.c                                         \
 ../qracodes/qracodes.c                                                  \
--lpthread -o qra65
+-lpthread -o qra64
 

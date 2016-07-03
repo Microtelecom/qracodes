@@ -16,7 +16,7 @@
 //    GNU General Public License for more details.
 
 //    You should have received a copy of the GNU General Public License
-//    along with qra_codes source distribution.  
+//    along with qracodes source distribution.  
 //    If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef _npfwht_h_

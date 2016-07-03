@@ -14,12 +14,12 @@
 //    main.c		 - this file
 //    qra65.c/.h     - qra65 mode encode/decoding functions
 // 
-//    ../qracodes-mt/normrnd.c/.h   - random gaussian number generator
-//    ../qracodes-mt/npfwht.c/.h    - Fast Walsh-Hadamard Transforms
-//    ../qracodes-mt/pdmath.c/.h    - Elementary math on probability distributions
-//    ../qracodes-mt/qra12_63_64_irr_b.c/.h - Tables for a QRA(12,63) irregular RA code over GF(64)
-//    ../qracodes-mt/qra13_64_64_irr_e.c/.h - Tables for a QRA(13,64) irregular RA code "     "
-//    ../qracodes-mt/qracodes.c/.h  - QRA codes encoding/decoding functions
+//    ../qracodes/normrnd.c/.h   - random gaussian number generator
+//    ../qracodes/npfwht.c/.h    - Fast Walsh-Hadamard Transforms
+//    ../qracodes/pdmath.c/.h    - Elementary math on probability distributions
+//    ../qracodes/qra12_63_64_irr_b.c/.h - Tables for a QRA(12,63) irregular RA code over GF(64)
+//    ../qracodes/qra13_64_64_irr_e.c/.h - Tables for a QRA(13,64) irregular RA code "     "
+//    ../qracodes/qracodes.c/.h  - QRA codes encoding/decoding functions
 //
 // -------------------------------------------------------------------------------
 //
@@ -77,7 +77,7 @@ unsigned GetTickCount(void) {
 #include <string.h>
 
 #include "qra65.h"
-#include "../qracodes-mt/normrnd.h"		   // gaussian numbers generator
+#include "../qracodes/normrnd.h"		   // gaussian numbers generator
 
 // -----------------------------------------------------------------------------------
 
