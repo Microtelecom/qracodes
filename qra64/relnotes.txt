@@ -1,0 +1,64 @@
+Release Notes
+
+All the files modified from the commit r6924
+
+qracodes.h/.c - routine qra_mfskbesselmetric modified to 
+                return the estimated noise standard deviation
+				
+qra64.h/.c    - qra_decodes(...) modified to return the estimated
+                Eb/No ratio on successful decoding
+			  - Added the QRA_USERAP codec mode and two new calls:
+			    qra64_apset(...,aptype) and qra64_apdisable(...,aptype)
+				In QRA_USERAP mode:
+				1) aptype define the type of AP to be enabled (with a call
+				to qra64_apset) or to be disabled (with a call to
+				qra64_apdisable).
+				Available AP types are defined as:
+					APTYPE_CQQRZ     0	// [cq/qrz ?       ?/blank]
+					APTYPE_MYCALL    1	// [mycall ?       ?/blank]
+					APTYPE_HISCALL   2  // [?      hiscall ?/blank]
+					APTYPE_BOTHCALLS 3  // [mycall hiscall ?]
+				3) During the codec initialization only the APTYPE_CQQRZ
+				is enabled. All the other types must be enabled/disabled 
+				with explicit calls to qra64_apset()/qra64_apdisable()
+				
+qra64_subs.c  - 1) Codec defined as a static pointer shared by the encoder
+				and the decoder.
+				2) In qra64_dec_ the codec is unallocated/reallocated
+				each time the argument 'mycall' differs from that
+				passed in a previous function call. This is not stricly
+				necessary but grants that any of the aptypes which could
+				have been enabled by the caller are reset and disabled.
+				After the reallocation the APTYPE_MYCALL is enabled with
+				the last 'mycall' argument.
+				3) For test purposes I've added a define NICO_WANTS_SNR_DUMP
+				When defined the SNR value of the incoming message is
+				dumped to the file C:\JTSDK\snrdump.txt along with the
+				decoding return code. 
+				Note that the Eb/No can be computed accurately only when the
+				message is successfully decoded. No dump is made if the
+				decode is unsuccessfull.
+				3) The estimated SNR value is what seen by the decoder and is
+				always less than the real SNR as the synchronization process 
+				and the receiver matched filter are never perfect.
+				Actually this estimate is very useful to estimate how
+				good the synchronization/matched filter operations are
+				(or how far they are from ideal) 
+				4) The estimated SNR is computed as Eb/No + 31 dB (the offset
+				for the QRA64 mode with the 3x 7x7 Costas array synch pattern
+				and given symbol time) and is accurate to +/-0.2 dB up to
+				+20 dB (which is the maximum value returned by the call)
+				Of course it is a random variable and its variance depends on
+				its mean. 
+				The estimated Eb/No is computed reencoding the decoded message
+				and summing the energy of the message symbols. This sum is
+				then normalized to the noise spectral density and linearized
+				empirically in order to minimize the effects of the noise
+				variance overestimation (as done in qra_mfskbesselmetric) when
+				the SNR is high.
+				The resulting dynamic range is accurate from less than -30 dB
+				and up to 20 dB.
+				
+main.c        - (sample simulator) updated to reflect the above changes
+				
+Nico 7/17/2016
