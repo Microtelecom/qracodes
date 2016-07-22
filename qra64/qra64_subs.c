@@ -24,7 +24,7 @@ void qra64_dec_(float r[], int* nmycall, int xdec[], int* rc)
 //   rc=4    [CALL ?     ] AP44
 //   rc=5    [CALL CALL ?] AP57
 
-  static ncall0=-1;
+  static int ncall0=-1;
   int ncall=*nmycall;
   static qra64codec *codec;
 
